@@ -20,6 +20,9 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
 
+with app.app_context():
+    db.create_all()
+
 def calculate_grade(total_marks, is_retake=False):
     if total_marks >= 80:
         grade_point = 4.0
