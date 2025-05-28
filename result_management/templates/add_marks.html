@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>Add Marks (Bulk Entry)</h2>
+    <form method="get" action="{{ url_for('add_marks', session_id=session_id) }}">
+        <label>Select Subject</label>
+        <select name="subject_id" onchange="this.form.submit()" class="form-select mb-3">
+            <option value="">-- Select --</option>
+            {% for subject in subjects %}
+                <option value="{{ subject.id }}" {% if selected_subject and subject.id == selected_subject.id %}selected{% endif %}>
+                    {{ subject.code }} - {{ subject.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+    {% if selected_subject %}
+    <form method="post">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Attendance (10)</th>
+                    <th>Continuous Assessment (40)</th>
+                    <th>Section A (25)</th>
+                    <th>Section B (25)</th>
+                    <th>Total Marks</th>
+                    <th>Grade</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in registered_students %}
+                <tr data-student="{{ student.id }}" data-is-retake="{{ 1 if is_retake_map[student.id] else 0 }}">
+                    <td>{{ student.student_id }}</td>
+                    <td>{{ student.name }}</td>
+                    <td>
+                        <input type="number" name="student_{{ student.id }}_attendance" value="{{ marks_map[student.id].attendance if marks_map[student.id] else '' }}" class="form-control marks-input" step="any">
+                    </td>
+                    <td>
+                        <input type="number" name="student_{{ student.id }}_continuous_assessment" value="{{ marks_map[student.id].continuous_assessment if marks_map[student.id] else '' }}" class="form-control marks-input" step="any">
+                    </td>
+                    <td>
+                        <input type="number" name="student_{{ student.id }}_part_a" value="{{ marks_map[student.id].part_a if marks_map[student.id] else '' }}" class="form-control marks-input" step="any">
+                    </td>
+                    <td>
+                        <input type="number" name="student_{{ student.id }}_part_b" value="{{ marks_map[student.id].part_b if marks_map[student.id] else '' }}" class="form-control marks-input" step="any">
+                    </td>
+                    <td class="total-marks-cell" data-student="{{ student.id }}">
+                        {% if marks_map[student.id] %}{{ marks_map[student.id].total_marks }}{% endif %}
+                    </td>
+                    <td class="grade-cell" data-student="{{ student.id }}">
+                        {% if marks_map[student.id] %}
+                            {{ marks_map[student.id].grade_letter }} ({{ marks_map[student.id].grade_point }})
+                        {% endif %}
+                    </td>
+                    <td class="remarks-cell" data-student="{{ student.id }}">
+                        {% if is_retake_map[student.id] and marks_map[student.id] and marks_map[student.id].grade_letter != 'F' %}Retake{% endif %}
+                        {% if is_retake_map[student.id] %}<span class="badge bg-warning text-dark ms-2">Retake</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-warning ms-2" id="clearMarksBtn">Clear</button>
+        <button type="submit" class="btn btn-primary">Save Marks</button>
+    </form>
+    {% endif %}
+</div>
+
+<script>
+function calculateGrade(total, isRetake) {
+    let grade_point, grade_letter;
+    if (total >= 80) { grade_point = 4.0; grade_letter = 'A+'; }
+    else if (total >= 75) { grade_point = 3.75; grade_letter = 'A'; }
+    else if (total >= 70) { grade_point = 3.5; grade_letter = 'A-'; }
+    else if (total >= 65) { grade_point = 3.25; grade_letter = 'B+'; }
+    else if (total >= 60) { grade_point = 3.0; grade_letter = 'B'; }
+    else if (total >= 55) { grade_point = 2.75; grade_letter = 'B-'; }
+    else if (total >= 50) { grade_point = 2.5; grade_letter = 'C+'; }
+    else if (total >= 45) { grade_point = 2.25; grade_letter = 'C'; }
+    else if (total >= 40) { grade_point = 2.0; grade_letter = 'D'; }
+    else { grade_point = 0.0; grade_letter = 'F'; }
+    if (isRetake && grade_letter !== 'F') {
+        if (grade_letter === 'A+') { grade_letter = 'A'; grade_point = 3.75; }
+        else if (grade_letter === 'A') { grade_letter = 'A-'; grade_point = 3.5; }
+        else if (grade_letter === 'A-') { grade_letter = 'B+'; grade_point = 3.25; }
+        else if (grade_letter === 'B+') { grade_letter = 'B'; grade_point = 3.0; }
+        else if (grade_letter === 'B') { grade_letter = 'B-'; grade_point = 2.75; }
+        else if (grade_letter === 'B-') { grade_letter = 'C+'; grade_point = 2.5; }
+        else if (grade_letter === 'C+') { grade_letter = 'C'; grade_point = 2.25; }
+        else if (grade_letter === 'C') { grade_letter = 'D'; grade_point = 2.0; }
+    }
+    return {grade_point, grade_letter};
+}
+
+function updateRow(studentId) {
+    let att = parseFloat(document.querySelector(`[name='student_${studentId}_attendance']`)?.value) || 0;
+    let ca = parseFloat(document.querySelector(`[name='student_${studentId}_continuous_assessment']`)?.value) || 0;
+    let a = parseFloat(document.querySelector(`[name='student_${studentId}_part_a']`)?.value) || 0;
+    let b = parseFloat(document.querySelector(`[name='student_${studentId}_part_b']`)?.value) || 0;
+    let total = att + ca + a + b;
+    let row = document.querySelector(`tr[data-student='${studentId}']`);
+    let isRetake = row && row.getAttribute('data-is-retake') === '1';
+    let grade = calculateGrade(total, isRetake);
+    // Update Total Marks
+    let totalCell = document.querySelector(`td.total-marks-cell[data-student='${studentId}']`);
+    if (totalCell) totalCell.textContent = total;
+    // Update Grade
+    let gradeCell = document.querySelector(`td.grade-cell[data-student='${studentId}']`);
+    if (gradeCell) {
+        gradeCell.textContent = grade.grade_letter + ` (${grade.grade_point})`;
+    }
+    // Update Remarks
+    let remarksCell = document.querySelector(`td.remarks-cell[data-student='${studentId}']`);
+    if (remarksCell) {
+        remarksCell.textContent = (isRetake && grade.grade_letter !== 'F') ? 'Retake' : '';
+        if (isRetake) {
+            let badge = document.createElement('span');
+            badge.className = 'badge bg-warning text-dark ms-2';
+            badge.textContent = 'Retake';
+            remarksCell.appendChild(badge);
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input.marks-input').forEach(function(input) {
+        input.addEventListener('input', function() {
+            let studentId = this.name.split('_')[1];
+            updateRow(studentId);
+        });
+    });
+    // Initial update for all rows
+    document.querySelectorAll('input.marks-input').forEach(function(input) {
+        let studentId = input.name.split('_')[1];
+        updateRow(studentId);
+    });
+});
+
+document.getElementById('clearMarksBtn').addEventListener('click', function() {
+    document.querySelectorAll('input.marks-input').forEach(function(input) {
+        input.value = '';
+    });
+    document.querySelectorAll('input.marks-input').forEach(function(input) {
+        let studentId = input.name.split('_')[1];
+        updateRow(studentId);
+    });
+});
+</script>
+{% endblock %}
+

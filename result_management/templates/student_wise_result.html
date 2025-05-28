@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12 col-md-6 offset-md-3">
+            <form method="GET" class="mb-3">
+                <label for="student_id" class="form-label">Select Student</label>
+                <div class="input-group">
+                    <select class="form-select" id="student_id" name="student_id" required onchange="this.form.submit()">
+                        <option value="">Select Student</option>
+                        {% for student in students %}
+                        <option value="{{ student.id }}" {% if selected_student and selected_student.id == student.id %}selected{% endif %}>
+                            {{ student.student_id }} - {{ student.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if selected_student %}
+                    <a href="{{ url_for('download_single_student_result_pdf', session_id=session_id, student_id=selected_student.id) }}" class="btn btn-outline-success ms-2" title="Download PDF for this student"><i class="bi bi-file-earmark-pdf"></i> Download PDF</a>
+                    {% endif %}
+                    <a href="{{ url_for('download_bulk_student_result_pdf', session_id=session_id) }}" class="btn btn-outline-primary ms-2" title="Download PDF for all students"><i class="bi bi-archive"></i> Bulk Download PDF</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% if selected_student %}
+    <div class="row">
+        <div class="col-12 text-center">
+            <h3><b>Khulna University</b></h3>
+            <h4>Student-wise Tabulation Sheet</h4>
+        </div>
+    </div>
+    <div class="row mb-2 mt-4">
+        <div class="col-6">
+            <b>Year:</b> LL.M.<br>
+            <b>Student No.:</b> {{ selected_student.student_id }}<br>
+            <b>Discipline:</b> Law
+        </div>
+        <div class="col-6 text-end">
+            <b>Term:</b> {{ selected_student.session.term }}<br>
+            <b>Name of Student:</b> {{ selected_student.name }}<br>
+            <b>Session:</b> {{ selected_student.session.name }}<br>
+            <b>School:</b> Law
+        </div>
+    </div>
+    {% set ns = namespace(rch=0, tch=0, tcp=0) %}
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle text-center">
+            <thead class="table-light">
+                <tr>
+                    <th>Course No.</th>
+                    <th>Course Title</th>
+                    <th>Registered Credit Hours</th>
+                    <th>Letter Grade</th>
+                    <th>Grade Point (GP)</th>
+                    <th>Earned Credit Hours (CH)</th>
+                    <th>Earned Credit Points (GP*CH)</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                    {% set mark = marks_map.get(subject.id) %}
+                    {% set reg_credit = subject.credit %}
+                    {% set earned_credit = reg_credit if mark and mark.grade_letter != 'F' else 0 %}
+                    {% set earned_points = (mark.grade_point * reg_credit) if mark else 0 %}
+                    {% set ns.rch = ns.rch + reg_credit %}
+                    {% set ns.tch = ns.tch + earned_credit %}
+                    {% set ns.tcp = ns.tcp + earned_points %}
+                    <tr>
+                        <td>{{ subject.code }}</td>
+                        <td>{{ subject.name }}</td>
+                        <td>{{ reg_credit }}</td>
+                        <td>{{ mark.grade_letter if mark else '' }}</td>
+                        <td>{{ mark.grade_point if mark else '' }}</td>
+                        <td>{{ earned_credit }}</td>
+                        <td>{{ '%.2f' % earned_points if mark else '' }}</td>
+                        <td>
+                            {% if mark and mark.is_retake and mark.grade_letter != 'F' %}
+                                Retake
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td colspan="2" class="text-end"><b>Total =</b></td>
+                    <td><b>{{ ns.rch }}</b></td>
+                    <td></td>
+                    <td></td>
+                    <td><b>{{ ns.tch }}</b></td>
+                    <td><b>{{ '%.2f' % ns.tcp }}</b></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <b>Term Assessment</b><br>
+            Total Earned Credit Hours in this Term (TCH) = {{ ns.tch }}<br>
+            Total Registered Credit Hours in this Term (RCH) = {{ ns.rch }}<br>
+            Total Earned Credit Points in this Term (TCP) = {{ '%.2f' % ns.tcp }}<br>
+            TGPA = TCP/RCH = {% if ns.rch > 0 %}{{ '%.2f' % (ns.tcp / ns.rch) }}{% else %}N/A{% endif %}
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col-4 text-center">
+            <br><br>
+            Signature of the First Tabulator<br>
+            Date:
+        </div>
+        <div class="col-4 text-center">
+            <br><br>
+            Signature of the Second Tabulator<br>
+            Date:
+        </div>
+        <div class="col-4 text-center">
+            <br><br>
+            Signature of the Chairman, Examination Committee<br>
+            Date:
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 
