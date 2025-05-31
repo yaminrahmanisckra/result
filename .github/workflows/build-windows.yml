@@ -34,7 +34,7 @@ jobs:
         pyinstaller result_app.spec
         
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ResultManagement-Windows
         path: dist/ResultManagement.exe 
