@@ -4,4 +4,4 @@ services:
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn result_management.app:app
-    pythonVersion: 3.12.3 
+    pythonVersion: 3.11.9 
