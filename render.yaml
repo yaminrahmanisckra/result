@@ -1,6 +1,0 @@
-services:
-  - type: web
-    name: result-management
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn result_management.app:app 
