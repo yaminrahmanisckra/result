@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify, send_from_directory, session
 from result_management.models.models import db, Session, Student, Subject, Mark, CourseRegistration, User
-from config import Config
+from result_management.config import Config
 import os
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, A4, landscape
