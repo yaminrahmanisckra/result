@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify, send_from_directory
-from result_management.models.models import db, Session, Student, Subject, Mark, CourseRegistration, User
-from result_management.config import Config
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify, send_from_directory, session
+from models.models import db, Session, Student, Subject, Mark, CourseRegistration, User
+from config import Config
 import os
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, A4, landscape
@@ -12,7 +12,6 @@ from werkzeug.utils import secure_filename
 import zipfile
 import io
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import session
 from functools import wraps
 from reportlab.lib.enums import TA_CENTER
 
@@ -1363,6 +1362,4 @@ def safe_float(val):
         return 0.0
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)

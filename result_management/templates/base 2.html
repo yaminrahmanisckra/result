@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block extra_css %}{% endblock %}
+    <style>
+        body { background: #f8fafc; font-family: 'Roboto', Arial, sans-serif; }
+        main { min-height: 80vh; }
+        footer { background: #222; color: #eee; padding: 1.5rem 0 0.5rem 0; margin-top: 2rem; font-size: 0.95rem; }
+        .footer-link { color: #b5cdfa; text-decoration: none; }
+        .footer-link:hover { color: #fff; text-decoration: underline; }
+        .nav-btn {
+            padding: 0.25rem 0.5rem;
+            margin: 0 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-primary bg-primary shadow-sm">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <button onclick="window.history.back()" class="btn btn-link text-white nav-btn" id="backBtn">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+                <button onclick="window.history.forward()" class="btn btn-link text-white nav-btn" id="forwardBtn">
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+                <a class="navbar-brand d-flex flex-column align-items-start gap-1 ms-2" href="{{ url_for('index') }}">
+                    <i class="bi bi-mortarboard-fill fs-3"></i>
+                    <span class="fw-bold" style="line-height:1.1; font-size:1.1rem;">Khulna University</span>
+                    <span style="font-size:0.95rem;">Law Discipline</span>
+                    <span style="font-size:0.92rem;">LLM Result Management Program</span>
+                </a>
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    {% if session.get('user_id') %}
+                    <li class="nav-item">
+                        <a class="nav-link fw-bold d-flex align-items-center text-dark" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right me-1"></i> Logout
+                        </a>
+                    </li>
+                    {% endif %}
+                    <!-- Add more nav links here if needed -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <main class="container py-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="text-center">
+        <div>Developed by Md. Yamin Rahman</div>
+        <div>Assistant Professor, Law Discipline</div>
+        <div>Khulna University</div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Update button states based on history
+        function updateNavButtons() {
+            const backBtn = document.getElementById('backBtn');
+            const forwardBtn = document.getElementById('forwardBtn');
+            
+            backBtn.disabled = !window.history.state || window.history.state.index <= 0;
+            forwardBtn.disabled = !window.history.state || window.history.state.index >= window.history.length - 1;
+        }
+
+        // Initialize history state
+        if (!window.history.state) {
+            window.history.replaceState({ index: 0 }, '');
+        }
+
+        // Update buttons on navigation
+        window.addEventListener('popstate', updateNavButtons);
+        window.addEventListener('load', updateNavButtons);
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

@@ -1,7 +1,21 @@
 {% extends "base.html" %}
 
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Sessions</a></li>
+<li class="breadcrumb-item active">Add Marks</li>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-arrow-left"></i> Back to Sessions
+            </a>
+        </div>
+    </nav>
+
     <h2>Add Marks (Bulk Entry)</h2>
     <form method="get" action="{{ url_for('add_marks', session_id=session_id) }}">
         <label>Select Subject</label>
@@ -130,6 +144,28 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', function() {
             let studentId = this.name.split('_')[1];
             updateRow(studentId);
+        });
+
+        // Add keydown event listener for Tab key
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault(); // Prevent default tab behavior
+                
+                // Get current input's position in the table
+                let currentCell = this.closest('td');
+                let currentRow = currentCell.closest('tr');
+                let currentColumn = Array.from(currentRow.cells).indexOf(currentCell);
+                
+                // Find next row
+                let nextRow = currentRow.nextElementSibling;
+                if (nextRow) {
+                    // Get the input in the same column of the next row
+                    let nextInput = nextRow.cells[currentColumn].querySelector('input');
+                    if (nextInput) {
+                        nextInput.focus();
+                    }
+                }
+            }
         });
     });
     // Initial update for all rows

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col">
+        <h2>Bulk Course Registration</h2>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary mb-3">Back to Sessions</a>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <form method="POST" id="registration-form">
+            <div class="mb-3">
+                <label for="subject_id" class="form-label">Select Subject</label>
+                <select class="form-select" id="subject_id" name="subject_id" required onchange="window.location='?subject_id='+this.value;">
+                    <option value="">-- Select Subject --</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if selected_subject and selected_subject.id == subject.id %}selected{% endif %}>{{ subject.code }} - {{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if selected_subject %}
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>
+                                Reg
+                                <button type="button" onclick="selectAllReg()" style="font-size:12px; margin-left:5px; padding:2px 8px;">Select All</button>
+                            </th>
+                            <th>Retake</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.student_id }}</td>
+                            <td>{{ student.name }}</td>
+                            <td class="text-center">
+                                <input type="checkbox" class="reg-checkbox" name="student_{{ student.id }}_reg" {% if reg_map.get((student.id, 'reg')) %}checked{% endif %}>
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" class="retake-checkbox" name="student_{{ student.id }}_retake" {% if reg_map.get((student.id, 'retake')) %}checked{% endif %}>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">Save Registration</button>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+<style>
+input[type="checkbox"].reg-checkbox,
+input[type="checkbox"].retake-checkbox {
+    width: 22px;
+    height: 22px;
+    accent-color: #007bff;
+}
+</style>
+<script>
+document.querySelectorAll('.reg-checkbox').forEach(function(regBox) {
+    regBox.addEventListener('change', function() {
+        const student = this.getAttribute('data-student');
+        const subject = this.getAttribute('data-subject');
+        const retakeBox = document.querySelector(
+            'input.retake-checkbox[data-student="' + student + '"][data-subject="' + subject + '"]'
+        );
+        if (this.checked) {
+            retakeBox.disabled = false;
+        } else {
+            retakeBox.checked = false;
+            retakeBox.disabled = true;
+        }
+    });
+});
+window.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.reg-checkbox').forEach(function(regBox) {
+        const student = regBox.getAttribute('data-student');
+        const subject = regBox.getAttribute('data-subject');
+        const retakeBox = document.querySelector(
+            'input.retake-checkbox[data-student="' + student + '"][data-subject="' + subject + '"]'
+        );
+        if (!regBox.checked) {
+            retakeBox.checked = false;
+            retakeBox.disabled = true;
+        }
+    });
+    // Add Select All Reg logic
+    var selectAllBtn = document.getElementById('select-all-reg');
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            document.querySelectorAll('.reg-checkbox').forEach(function(cb) {
+                cb.checked = true;
+            });
+        });
+    }
+});
+function selectAllReg() {
+    document.querySelectorAll('.reg-checkbox').forEach(function(cb) {
+        cb.checked = true;
+    });
+}
+</script>
+{% endblock %} 
