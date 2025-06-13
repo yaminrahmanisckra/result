@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify, send_from_directory, session
-from models.models import db, Session, Student, Subject, Mark, CourseRegistration, User
+from result_management.models.models import db, Session, Student, Subject, Mark, CourseRegistration, User
 from config import Config
 import os
 from reportlab.lib import colors
