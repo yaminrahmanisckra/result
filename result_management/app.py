@@ -1295,7 +1295,7 @@ def register():
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
-        role = request.form['role']
+        role = 'student'  # Default role
         
         if User.query.filter_by(username=username).first():
             flash('Username already exists')
