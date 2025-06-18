@@ -1293,16 +1293,26 @@ def login_required(f):
 def register():
     if request.method == 'POST':
         username = request.form['username']
-        email = request.form['email']
         password = request.form['password']
-        if User.query.filter((User.username==username)|(User.email==email)).first():
-            flash('Username or email already exists.', 'danger')
+        email = request.form['email']
+        role = request.form['role']
+        
+        if User.query.filter_by(username=username).first():
+            flash('Username already exists')
             return redirect(url_for('register'))
-        user = User(username=username, email=email, password_hash=generate_password_hash(password))
+            
+        if User.query.filter_by(email=email).first():
+            flash('Email already exists')
+            return redirect(url_for('register'))
+            
+        user = User(username=username, email=email, role=role)
+        user.set_password(password)
         db.session.add(user)
         db.session.commit()
-        flash('Account created! Please log in.', 'success')
+        
+        flash('Registration successful')
         return redirect(url_for('login'))
+        
     return render_template('register.html')
 
 # --- Login Route ---
