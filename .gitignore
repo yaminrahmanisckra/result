@@ -17,4 +17,20 @@ ENV/
 
 dist/
 build/
-*.spec 
+*.spec
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+
+# Backup files
+backup.sql 
